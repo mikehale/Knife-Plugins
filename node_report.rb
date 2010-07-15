@@ -56,30 +56,20 @@ class Chef
           last_check_in = hours < 1 ? "#{minutes_text}" : "#{hours_text}"
           roles = node.run_list.roles.reject{|n| n =~ /lucid|cluster|ec2|gluster/}.join(",")
           status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
-          #puts "|\t#{roles}\t|\t#{node.ec2.instance_id}\t|\t#{node.ec2.public_hostname}\t|\t#{status}\t|\t#{last_check_in}\t|"
-          puts "#{roles}\t#{node.ec2.instance_id}\t#{node.ec2.public_hostname}\t#{status}\t#{last_check_in}"
-          #$results << [roles,node.ec2.instance_id,node.ec2.public_hostname,status,last_check_in]
+          puts "#{roles.ljust(50)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_hostname.ljust(50)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
         end
       end
 
       def run
         tasklist = []
-        #$results = []
-        #$results << ["Roles","Instance ID","Public Hostname","Ping Status","Last Check-in Time"]
-        #puts
-        #"|\tRoles\t\t\t\t\t|\tinstance_id\t|\tpublic_hostname\t|\tPing
-        #Status\t|\tlast check in time\t|"
-        puts "Roles\tinstance_id\tpublic_hostname\tPing Status\tlast check in time"
+        puts "#{'Roles'.ljust(50)}#{'instance_id'.ljust(20)}#{'public_hostname'.ljust(50)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
         Chef::Search::Query.new.search(:node, '*:*') do |node|
-          # Set the threads going
-
           task = Thread.new { showreport(node) }
           tasklist << task
         end
         tasklist.each { |task|
           task.join
         }
-        #pp results
       end
     end
   end
