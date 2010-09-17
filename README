@@ -1,3 +1,3 @@
 Install:
 
-wget -qO - http://github.com/mikehale/Knife-Plugins/raw/master/node_report.rb > $(gem which chef | sed's/chef\.rb/chef\/knife/')/node_report.rb
+wget -qO - http://github.com/mikehale/Knife-Plugins/raw/master/report.rb > $(gem which chef | sed's/chef\.rb/chef\/knife/')/report.rb
