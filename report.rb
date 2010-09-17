@@ -47,24 +47,18 @@ class Chef
       end
 
       def showreport(node)
-        if node["ohai_time"]
-          current_time = Date.today
-          date = Date.parse(Time.at(node["ohai_time"]).to_s)
-          hours, minutes, seconds, frac = Date.day_fraction_to_time(current_time - date)
-          hours_text   = "#{hours} hour#{hours == 1 ? ' ' : 's'}"
-          minutes_text = "#{minutes} minute#{minutes == 1 ? ' ' : 's'}"
-          last_check_in = hours < 1 ? "#{minutes_text}" : "#{hours_text}"
+        if node.ohai_time
           cluster_name = node.cluster.name
           roles = node.run_list.reject{|n| n == "role[#{cluster_name}]" }.join(",")
           status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
 
-          puts "#{cluster_name.ljust(10)}#{roles.ljust(60)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
+          puts "#{cluster_name.ljust(10)}#{roles.ljust(80)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(20)}"
         end
       end
 
       def run
         tasklist = []
-        puts "#{'Cluster'.ljust(10)}#{'Roles'.ljust(60)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
+        puts "#{'Cluster'.ljust(10)}#{'Roles'.ljust(80)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(20)}"
         nodes = Chef::Search::Query.new.search(:node, '*:*').first
         sorted = nodes.reject{|n| n.nil? }.sort {|a,b| a.cluster.name <=> b.cluster.name }
         sorted.each do |node|
