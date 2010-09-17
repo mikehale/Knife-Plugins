@@ -24,7 +24,7 @@ require 'timeout'
 
 class Chef
   class Knife
-    class NodeReport < Knife
+    class Report < Knife
       def highline
         @h ||= HighLine.new
       end
@@ -55,7 +55,7 @@ class Chef
           minutes_text = "#{minutes} minute#{minutes == 1 ? ' ' : 's'}"
           last_check_in = hours < 1 ? "#{minutes_text}" : "#{hours_text}"
           cluster_name = node.cluster.name
-          roles = node.run_list.roles.reject{|n| n =~ /#{cluster_name}|lucid|ec2/}.join(",")
+          roles = node.run_list.reject{|n| n == "role[#{cluster_name}]" }.join(",")
           status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
 
           puts "#{cluster_name.ljust(20)}#{roles.ljust(50)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
@@ -65,7 +65,9 @@ class Chef
       def run
         tasklist = []
         puts "#{'Cluster'.ljust(20)}#{'Roles'.ljust(50)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
-        Chef::Search::Query.new.search(:node, '*:*') do |node|
+        nodes = Chef::Search::Query.new.search(:node, '*:*').first
+        sorted = nodes.reject{|n| n.nil? }.sort {|a,b| a.cluster.name <=> b.cluster.name }
+        sorted.each do |node|
           showreport(node)
         end
       end
