@@ -54,22 +54,20 @@ class Chef
           hours_text   = "#{hours} hour#{hours == 1 ? ' ' : 's'}"
           minutes_text = "#{minutes} minute#{minutes == 1 ? ' ' : 's'}"
           last_check_in = hours < 1 ? "#{minutes_text}" : "#{hours_text}"
-          roles = node.run_list.roles.reject{|n| n =~ /lucid|cluster|ec2|gluster/}.join(",")
+          cluster_name = node.cluster.name
+          roles = node.run_list.roles.reject{|n| n =~ /#{cluster_name}|lucid|ec2/}.join(",")
           status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
-          puts "#{roles.ljust(50)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_hostname.ljust(50)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
+
+          puts "#{cluster_name.ljust(20)}#{roles.ljust(50)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
         end
       end
 
       def run
         tasklist = []
-        puts "#{'Roles'.ljust(50)}#{'instance_id'.ljust(20)}#{'public_hostname'.ljust(50)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
+        puts "#{'Cluster'.ljust(20)}#{'Roles'.ljust(50)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
         Chef::Search::Query.new.search(:node, '*:*') do |node|
-          task = Thread.new { showreport(node) }
-          tasklist << task
+          showreport(node)
         end
-        tasklist.each { |task|
-          task.join
-        }
       end
     end
   end
