@@ -58,13 +58,13 @@ class Chef
           roles = node.run_list.reject{|n| n == "role[#{cluster_name}]" }.join(",")
           status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
 
-          puts "#{cluster_name.ljust(20)}#{roles.ljust(50)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
+          puts "#{cluster_name.ljust(10)}#{roles.ljust(60)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(20)}#{last_check_in.ljust(20)}"
         end
       end
 
       def run
         tasklist = []
-        puts "#{'Cluster'.ljust(20)}#{'Roles'.ljust(50)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
+        puts "#{'Cluster'.ljust(10)}#{'Roles'.ljust(60)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(20)}#{'last check in time'.ljust(20)}"
         nodes = Chef::Search::Query.new.search(:node, '*:*').first
         sorted = nodes.reject{|n| n.nil? }.sort {|a,b| a.cluster.name <=> b.cluster.name }
         sorted.each do |node|
