@@ -48,12 +48,15 @@ class Chef
 
       def showreport(node)
         if node.ohai_time
-          cluster_name = node.cluster.name
-          roles = node.run_list.reject{|n| n == "role[#{cluster_name}]" }.join(",")
-          status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
-          az = node.ec2.placement_availability_zone
-
-          puts "#{cluster_name.ljust(10)}#{roles.ljust(80)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(12)}#{az.ljust(10)}"
+          begin
+            cluster_name = node.cluster.name
+            roles = node.run_list.reject{|n| n == "role[#{cluster_name}]" }.join(",")
+            status = is_port_open?("#{node.ec2.public_ipv4}","22") ? "UP" : "DOWN"
+            az = node.ec2.placement_availability_zone
+            puts "#{cluster_name.ljust(10)}#{roles.ljust(80)}#{node.ec2.instance_id.ljust(20)}#{node.ec2.public_ipv4.ljust(20)}#{status.ljust(12)}#{az.ljust(10)}"
+          rescue
+            puts "There was a problem with node #{node.name}."
+          end
         end
       end
 
@@ -61,7 +64,7 @@ class Chef
         tasklist = []
         puts "#{'Cluster'.ljust(10)}#{'Roles'.ljust(80)}#{'instance_id'.ljust(20)}#{'public_ipv4'.ljust(20)}#{'SSH Status'.ljust(12)}#{'AZ'.ljust(10)}"
         nodes = Chef::Search::Query.new.search(:node, '*:*').first
-        sorted = nodes.reject{|n| n.nil? }.sort {|a,b| a.cluster.name <=> b.cluster.name }
+        sorted = nodes.reject{|n| n.nil? }.sort {|a,b| begin;a.cluster.name <=> b.cluster.name;rescue; 1 end }
         sorted.each do |node|
           showreport(node)
         end
